@@ -150,8 +150,8 @@ library Data {
     }
 
     function insert(Tree storage self, bytes key, bytes value) internal {
-        Label memory k = Label(keccak256(key), 256);
-        bytes32 valueHash = keccak256(value);
+        Label memory k = Label(keccak256(abi.encodePacked(key)), 256);
+        bytes32 valueHash = keccak256(abi.encodePacked(value));
         Edge memory e;
         if (self.root == 0) {
             // Empty Trie

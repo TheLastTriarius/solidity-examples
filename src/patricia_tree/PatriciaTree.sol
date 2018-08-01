@@ -45,7 +45,7 @@ contract PatriciaTree is PatriciaTreeFace {
     //  - bytes32[] _siblings - hashes of sibling edges
     function getProof(bytes key) public view returns (uint branchMask, bytes32[] _siblings) {
         require(tree.root != 0);
-        Data.Label memory k = Data.Label(keccak256(key), 256);
+        Data.Label memory k = Data.Label(keccak256(abi.encodePacked(key)), 256);
         Data.Edge memory e = tree.rootEdge;
         bytes32[256] memory siblings;
         uint length;
@@ -78,9 +78,9 @@ contract PatriciaTree is PatriciaTreeFace {
     }
 
     function verifyProof(bytes32 rootHash, bytes key, bytes value, uint branchMask, bytes32[] siblings) public view returns (bool) {
-        Data.Label memory k = Data.Label(keccak256(key), 256);
+        Data.Label memory k = Data.Label(keccak256(abi.encodePacked(key)), 256);
         Data.Edge memory e;
-        e.node = keccak256(value);
+        e.node = keccak256(abi.encodePacked(value));
         for (uint i = 0; branchMask != 0; i++) {
             uint bitSet = branchMask.lowestBitSet();
             branchMask &= ~(uint(1) << bitSet);
