@@ -99,12 +99,12 @@ library Data {
     }
 
     function edgeHash(Data.Edge memory self) internal pure returns (bytes32) {
-        return keccak256(self.node, self.label.length, self.label.data);
+        return keccak256(abi.encodePacked(self.node, self.label.length, self.label.data));
     }
 
     // Returns the hash of the encoding of a node.
     function hash(Data.Node memory self) internal pure returns (bytes32) {
-        return keccak256(edgeHash(self.children[0]), edgeHash(self.children[1]));
+        return keccak256(abi.encodePacked(edgeHash(self.children[0]), edgeHash(self.children[1])));
     }
 
     function insertNode(Data.Tree storage tree, Data.Node memory n) internal returns (bytes32 newHash) {
@@ -121,7 +121,11 @@ library Data {
 
     function insertAtEdge(Tree storage self, Edge e, Label key, bytes32 value) internal returns (Edge) {
         assert(key.length >= e.label.length);
-        var (prefix, suffix) = splitCommonPrefix(key, e.label);
+        Label memory prefix;
+        Label memory suffix;
+        uint head;
+        Label memory tail;
+        (prefix, suffix) = splitCommonPrefix(key, e.label);
         bytes32 newNodeHash;
         if (suffix.length == 0) {
             // Full match with the key, update operation
@@ -130,7 +134,7 @@ library Data {
             // Partial match, just follow the path
             assert(suffix.length > 1);
             Node memory n = self.nodes[e.node];
-            var (head, tail) = chopFirstBit(suffix);
+            (head, tail) = chopFirstBit(suffix);
             n.children[head] = insertAtEdge(self, n.children[head], tail, value);
             delete self.nodes[e.node];
             newNodeHash = insertNode(self, n);

@@ -50,8 +50,12 @@ contract PatriciaTree is PatriciaTreeFace {
         bytes32[256] memory siblings;
         uint length;
         uint numSiblings;
+        Data.Label memory prefix;
+        Data.Label memory suffix;
+        uint head;
+        Data.Label memory tail;
         while (true) {
-            var (prefix, suffix) = k.splitCommonPrefix(e.label);
+            (prefix, suffix) = k.splitCommonPrefix(e.label);
             assert(prefix.length == e.label.length);
             if (suffix.length == 0) {
                 // Found it
@@ -60,7 +64,7 @@ contract PatriciaTree is PatriciaTreeFace {
             length += prefix.length;
             branchMask |= uint(1) << 255 - length;
             length += 1;
-            var (head, tail) = suffix.chopFirstBit();
+            (head, tail) = suffix.chopFirstBit();
             siblings[numSiblings++] = tree.nodes[e.node].children[1 - head].edgeHash();
             e = tree.nodes[e.node].children[head];
             k = tail;
@@ -86,7 +90,7 @@ contract PatriciaTree is PatriciaTreeFace {
             bytes32[2] memory edgeHashes;
             edgeHashes[bit] = e.edgeHash();
             edgeHashes[1 - bit] = siblings[siblings.length - i - 1];
-            e.node = keccak256(edgeHashes);
+            e.node = keccak256(abi.encodePacked(edgeHashes));
         }
         e.label = k;
         require(rootHash == e.edgeHash());
